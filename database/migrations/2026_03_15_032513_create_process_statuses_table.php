@@ -16,6 +16,12 @@ return new class extends Migration
             $table->timestamps();
             $table->string('name');
         });
+
+        DB::table('process_statuses')->insert([
+            ['id' => 1, 'name' => 'STARTED'],
+            ['id' => 2, 'name' => 'COMPLETED'],
+            ['id' => 3, 'name' => 'FAILED'],
+        ]);
     }
 
     /**

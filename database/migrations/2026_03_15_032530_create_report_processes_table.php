@@ -15,11 +15,11 @@ return new class extends Migration
             $table->id();
             $table->timestamps();
             $table->string('name');
-            $table->integer('pid');
+            $table->uuid('pid')->unique();
             $table->timestamp('start_datetime');
             $table->integer('exec_time')->nullable();
             $table->foreignId('process_status_id');
-            $table->string('rp_file_save_path')->nullable();
+            $table->string('file_save_path')->nullable();
         });
     }
 
