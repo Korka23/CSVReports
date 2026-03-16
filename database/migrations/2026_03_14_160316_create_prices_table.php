@@ -16,7 +16,8 @@ return new class extends Migration
             $table->timestamps();
             $table->decimal('price');
             $table->dateTime('price_date');
-            $table->foreignId('product_id');
+            $table->unsignedBigInteger('product_id');
+            $table->foreign('product_id')->references('id')->on('products');
             $table->index(['id', 'price_date', 'price']);
         });
     }

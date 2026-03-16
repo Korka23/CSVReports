@@ -2,9 +2,9 @@
 
 namespace App\Enums;
 
-class ProcessStatusEnum: string
+enum ProcessStatusEnum: string
 {
-    const STARTED = 1;
-    const COMPLETED = 2;
-    const FAILED = 3;
+    case STARTED = 'started';
+    case COMPLETED = 'completed';
+    case FAILED = 'failed';
 }

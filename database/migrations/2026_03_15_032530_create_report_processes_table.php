@@ -14,11 +14,10 @@ return new class extends Migration
         Schema::create('report_processes', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
-            $table->string('name');
             $table->uuid('pid')->unique();
             $table->timestamp('start_datetime');
             $table->integer('exec_time')->nullable();
-            $table->foreignId('process_status_id');
+            $table->string('status');
             $table->string('file_save_path')->nullable();
         });
     }
