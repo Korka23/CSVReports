@@ -10,12 +10,12 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class GenerateReportJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
-
-    public string $pid;
     public int $categoryId;
     public int $manufacturerId;
 
@@ -25,12 +25,15 @@ class GenerateReportJob implements ShouldQueue
         $this->manufacturerId = $manufacturerId;
     }
 
+    /**
+     * @throws \Throwable
+     */
     public function handle()
     {
-        $start = now();
-
+        $start = microtime(true);
+        $now = now();
         $process = ReportProcess::query()->create([
-            'start_datetime' => $start,
+            'start_datetime' => $now,
             'status' => ProcessStatusEnum::STARTED,
         ]);
 
@@ -41,7 +44,7 @@ class GenerateReportJob implements ShouldQueue
             }
 
             $fileName = "report_{$this->manufacturerId}_{$this->categoryId}_"
-                . now()->format('Y-m-d_H-i-s') . "_uuid_{$this->pid}.csv";
+                . $now->format('Y-m-d_H-i-s') . ".csv";
 
             $filePath = "{$finalDir}/{$fileName}";
             $handle = fopen($filePath, 'w');
@@ -64,6 +67,9 @@ class GenerateReportJob implements ShouldQueue
                 'category' => $this->categoryId,
                 'manufacturer' => $this->manufacturerId
             ]);
+            if (empty($rows)) {
+                throw new \Exception("No products found for category {$this->categoryId} and manufacturer {$this->manufacturerId}");
+            }
 
             foreach ($rows as $row) {
                 fputcsv($handle, [
@@ -79,10 +85,11 @@ class GenerateReportJob implements ShouldQueue
             $process->update([
                 'status' => ProcessStatusEnum::COMPLETED,
                 'file_save_path' => "reports/{$fileName}",
-                'exec_time' => now()->diffInSeconds($start),
+                'exec_time' => (int) now()->diffInSeconds($start),
             ]);
 
         } catch (\Throwable $e) {
+
             $process->update([
                 'status' => ProcessStatusEnum::FAILED,
                 'exec_time' => (int) now()->diffInSeconds($start),
@@ -90,6 +97,7 @@ class GenerateReportJob implements ShouldQueue
             \Log::error("Report failed", [
                 'error' => $e->getMessage()
             ]);
+            throw  $e;
         }
     }
 }
